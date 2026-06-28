@@ -6,6 +6,7 @@ import { CategoryProvider } from './context/CategoryContext'
 import { OrderProvider } from './context/OrderContext'
 import { NotificationProvider } from './context/NotificationContext';
 import { BrandProvider } from './context/BrandContext';
+import { ChatProvider } from './context/ChatContext';
 
 
 import CustomerLayout from './layouts/CustomerLayout';
@@ -44,6 +45,7 @@ import StaffManagementPage from './pages/admin/StaffManagementPage';
 import StaffOrderPage from './pages/staff/StaffOrderPage';
 import StaffSupportPage from './pages/staff/StaffSupportPage';
 import StaffInventoryPage from './pages/staff/StaffInventoryPage';
+import StaffChatPage from './pages/staff/StaffChatPage';
 
 export default function App() {
 return (
@@ -56,6 +58,7 @@ return (
 							<CartProvider>
 								<OrderProvider>
 									<NotificationProvider>
+									<ChatProvider>
 										<Routes>
 											{/* Auth */}
 											<Route path="/login" element={<LoginPage />} />
@@ -93,12 +96,12 @@ return (
 											<Route index element={<Navigate to="/staff/orders" replace />} />
 											<Route path="orders" element={<StaffOrderPage />} />
 											<Route path="support" element={<StaffSupportPage />} />
-											<Route path="inventory" element={<StaffInventoryPage />} />
-											</Route>
+											<Route path="inventory" element={<StaffInventoryPage />} />										<Route path="chat" element={<StaffChatPage />} />											</Route>
 
 											<Route path="*" element={<Navigate to="/" replace />} />
 										</Routes>
-									</NotificationProvider>
+									</ChatProvider>
+								</NotificationProvider>
 								</OrderProvider>
 							</CartProvider>
 						</ProductProvider>

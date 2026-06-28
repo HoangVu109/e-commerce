@@ -6,6 +6,7 @@ const NAV = [
   { to: '/staff/orders', icon: <ShoppingCartOutlined />, label: 'Xử lý đơn hàng' },
   { to: '/staff/support', icon: <MessageOutlined />, label: 'Hỗ trợ khách hàng' },
   { to: '/staff/inventory', icon: <InboxOutlined />, label: 'Quản lý kho' },
+  { to: '/staff/chat', icon: <MessageOutlined />, label: 'Tin nhắn' },
 ];
 
 export default function StaffSidebar() {

@@ -3,30 +3,50 @@ import authApi from '../api/authApi.js';
 
 const AuthContext = createContext(null);
 
+function parseJwt(token) {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64).split('').map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')
+    );
+    return JSON.parse(jsonPayload);
+  } catch {
+    return null;
+  }
+}
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
-    if (savedUser) setUser(JSON.parse(savedUser));
-    setAuthLoading(false);  // đánh dấu đã đọc xong localStorage
-  }, []);
-
-  // Khi app load lại, đọc user từ localStorage để không mất session
-  useEffect(() => {
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) setUser(JSON.parse(savedUser));
+    const token = localStorage.getItem('token');
+    if (savedUser) {
+      const parsed = JSON.parse(savedUser);
+      if (token) {
+        const jwt = parseJwt(token);
+        parsed.userId = jwt?.['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier']
+          || jwt?.sub
+          || jwt?.nameid;
+      }
+      setUser(parsed);
+    }
+    setAuthLoading(false);
   }, []);
 
   const login = async (email, password) => {
     try {
-
       const res = await authApi.login({ email, password });
-
       const { token, name, roleNames } = res.data;
 
-      const userData = { name, email, roleNames };
+      const jwt = parseJwt(token);
+      const userId = jwt?.['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier']
+        || jwt?.sub
+        || jwt?.nameid;
+
+      const userData = { name, email, roleNames, userId };
 
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(userData));

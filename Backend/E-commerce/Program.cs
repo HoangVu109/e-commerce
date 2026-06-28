@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using E_commerce.Helpers;
+using E_commerce.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -53,6 +54,7 @@ builder.Services.AddHostedService<E_commerce.BackgroundServices.OrderExpiryServi
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IVNPayService, VNPayService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<IChatService, ChatService>();
 
 var cloudinarySettings = builder.Configuration
     .GetSection("Cloudinary")
@@ -90,6 +92,21 @@ builder.Services
                     new SymmetricSecurityKey(
                         Encoding.UTF8.GetBytes(jwtKey))
             };
+
+        // Cho phép SignalR gửi token qua query string
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+                {
+                    context.Token = accessToken;
+                }
+                return Task.CompletedTask;
+            }
+        };
     });
 
 builder.Services.AddAuthorization();
@@ -100,15 +117,20 @@ builder.Services.AddCors(options =>
     options.AddPolicy(
         "AllowAll",
         policy =>
-            policy.AllowAnyOrigin()
+            policy.SetIsOriginAllowed(_ => true)
                   .AllowAnyMethod()
-                  .AllowAnyHeader());
+                  .AllowAnyHeader()
+                  .AllowCredentials());
 
     options.AddPolicy("AllowFrontend", policy =>
         policy.WithOrigins("http://localhost:5173")
               .AllowAnyMethod()
-              .AllowAnyHeader());
+              .AllowAnyHeader()
+              .AllowCredentials());
 });
+
+// SignalR
+builder.Services.AddSignalR();
 
 // Controllers
 builder.Services.AddControllers();
@@ -181,6 +203,8 @@ app.UseCors(app.Environment.IsDevelopment() ? "AllowAll" : "AllowFrontend");
 app.UseAuthentication();
 
 app.UseAuthorization();
+
+app.MapHub<ChatHub>("/hubs/chat");
 
 app.MapControllers();
 

@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import Navbar from '../components/customer/Navbar';
 import Footer from '../components/customer/Footer';
+import FloatingChatWidget from '../components/customer/FloatingChatWidget';
 
 export default function CustomerLayout() {
   return (
@@ -10,6 +11,7 @@ export default function CustomerLayout() {
         <Outlet />
       </main>
       <Footer />
+      <FloatingChatWidget />
     </div>
   );
 }
